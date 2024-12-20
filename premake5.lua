@@ -30,7 +30,14 @@ workspace "ReHPL"
 
         includedirs
         {
-            "%{wks.location}/%{prj.name}/include"
+            "%{wks.location}/%{prj.name}/include",
+            "%{wks.location}/%{IncludeThirdpartyDirs.spdlog}",
+            "%{wks.location}/%{IncludeThirdpartyDirs.backwardcpp}"
+        }
+
+        defines
+        {
+            "SPDLOG_WCHAR_TO_UTF8_SUPPORT"
         }
 
         links
@@ -87,7 +94,9 @@ workspace "ReHPL"
         includedirs
         {
             "%{wks.location}/%{prj.name}/include",
-            "%{wks.location}/HPL/include"
+            "%{wks.location}/HPL/include",
+            "%{wks.location}/%{IncludeThirdpartyDirs.spdlog}",
+            "%{wks.location}/%{IncludeThirdpartyDirs.backwardcpp}"
         }
 
         links

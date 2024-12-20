@@ -2,12 +2,13 @@
 #define HPL_SYSTEM_ENTRYPOINT_HPP
 
 #include "HPL/Engine/Engine.hpp"
-#include <iostream>
+#include "HPL/Utils/Logger.hpp"
 
 extern int hplMain();
 int main(int argc, char** argv)
 {
-    std::cout << "Hello World!" << std::endl;
+    hpl::Logger::Init();
+    INFO_LOG("Logger initialized");
     return hpl::hplMain();
 }
 
