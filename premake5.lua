@@ -9,7 +9,6 @@ workspace "ReHPL"
     buildpattern = "%{cfg.buildcfg}.%{cfg.system}.%{cfg.architecture}"
 
     group "Dependencies"
-        -- include "3rdparty/spdlog/premake5.lua"
     group ""
 
     project "HPL"
@@ -47,7 +46,7 @@ workspace "ReHPL"
 
         links
         {
-            -- "spdlog"
+
         }
 
         filter "system:windows"

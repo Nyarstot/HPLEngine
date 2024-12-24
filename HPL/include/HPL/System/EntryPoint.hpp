@@ -8,7 +8,6 @@ extern int hplMain();
 int main(int argc, char** argv)
 {
     hpl::Logger::Init();
-    INFO_LOG("Logger initialized");
     return hpl::hplMain();
 }
 
