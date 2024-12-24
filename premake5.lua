@@ -8,6 +8,10 @@ workspace "ReHPL"
 
     buildpattern = "%{cfg.buildcfg}.%{cfg.system}.%{cfg.architecture}"
 
+    group "Dependencies"
+        -- include "3rdparty/spdlog/premake5.lua"
+    group ""
+
     project "HPL"
         location "HPL"
         kind "StaticLib"
@@ -15,6 +19,7 @@ workspace "ReHPL"
         cppdialect "C++20"
         characterset "MBCS"
         staticruntime "on"
+        buildoptions {"/Zc:__cplusplus", "/utf-8"}
 
         targetdir("build/bin/" .. buildpattern .. "/%{prj.name}")
         objdir("build/int/" .. buildpattern .. "/%{prj.name}")
@@ -42,7 +47,7 @@ workspace "ReHPL"
 
         links
         {
-
+            -- "spdlog"
         }
 
         filter "system:windows"
@@ -79,6 +84,7 @@ workspace "ReHPL"
         cppdialect "C++20"
         staticruntime "on"
         characterset "MBCS"
+        buildoptions {"/Zc:__cplusplus", "/utf-8"}
 
         -- Executable will be placed in the root of application folder
         -- to have easier eaccess to game resources.
