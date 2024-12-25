@@ -9,5 +9,6 @@
 #include <functional>
 #include <utility>
 #include <cstdint>
+#include <memory>
 
 #endif // !HPL_HPLPCH_HPP

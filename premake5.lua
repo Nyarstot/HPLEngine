@@ -8,6 +8,9 @@ workspace "ReHPL"
 
     buildpattern = "%{cfg.buildcfg}.%{cfg.system}.%{cfg.architecture}"
 
+    group "Dependencies"
+    group ""
+
     project "HPL"
         location "HPL"
         kind "StaticLib"
@@ -15,6 +18,7 @@ workspace "ReHPL"
         cppdialect "C++20"
         characterset "MBCS"
         staticruntime "on"
+        buildoptions {"/Zc:__cplusplus", "/utf-8"}
 
         targetdir("build/bin/" .. buildpattern .. "/%{prj.name}")
         objdir("build/int/" .. buildpattern .. "/%{prj.name}")
@@ -30,7 +34,14 @@ workspace "ReHPL"
 
         includedirs
         {
-            "%{wks.location}/%{prj.name}/include"
+            "%{wks.location}/%{prj.name}/include",
+            "%{wks.location}/%{IncludeThirdpartyDirs.spdlog}",
+            "%{wks.location}/%{IncludeThirdpartyDirs.backwardcpp}"
+        }
+
+        defines
+        {
+            "SPDLOG_WCHAR_TO_UTF8_SUPPORT"
         }
 
         links
@@ -72,6 +83,7 @@ workspace "ReHPL"
         cppdialect "C++20"
         staticruntime "on"
         characterset "MBCS"
+        buildoptions {"/Zc:__cplusplus", "/utf-8"}
 
         -- Executable will be placed in the root of application folder
         -- to have easier eaccess to game resources.
@@ -87,7 +99,9 @@ workspace "ReHPL"
         includedirs
         {
             "%{wks.location}/%{prj.name}/include",
-            "%{wks.location}/HPL/include"
+            "%{wks.location}/HPL/include",
+            "%{wks.location}/%{IncludeThirdpartyDirs.spdlog}",
+            "%{wks.location}/%{IncludeThirdpartyDirs.backwardcpp}"
         }
 
         links
