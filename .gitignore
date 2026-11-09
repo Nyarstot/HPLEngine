@@ -348,3 +348,14 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# premake: build output and generated projects (run GenerateProject.bat)
+/build/
+/HPLEngine.sln
+HPL2/core/HPL2.vcxproj*
+HPL2/dependencies/OALWrapper/OALWrapper.vcxproj*
+amnesia/src/game/Amnesia.vcxproj*
+
+# Unpacked HPL2/dependencies.zip: only OALWrapper is built from source and tracked
+HPL2/dependencies/*
+!HPL2/dependencies/OALWrapper/
