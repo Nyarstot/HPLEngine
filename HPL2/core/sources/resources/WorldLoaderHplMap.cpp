@@ -243,10 +243,13 @@ namespace hpl {
 		mlStaticMeshBodiesCreated = 0;
 		mlStaticMeshEntitiesCreated =0;
 
-		msCacheFileExt = _W("map_cache");
+		// Map caches embed serialized Newton collision data. The original game was built with
+		// Newton 2.00, whose data Newton 3.x cannot read, so this build uses its own extension
+		// and leaves the original .map_cache files alone.
+		msCacheFileExt = _W("map_cache_n3");
 		if( (mlCurrentFlags & eWorldLoadFlag_FastPhysicsLoad) || (mlCurrentFlags & eWorldLoadFlag_FastStaticLoad) )
 		{
-			msCacheFileExt = _W("map_cache_fastload");
+			msCacheFileExt = _W("map_cache_n3_fastload");
 		}
 		
 		

@@ -52,7 +52,7 @@ namespace hpl {
 		: iPhysicsWorld()
 	{
 		//mpNewtonWorld = NewtonCreate();
-		mpNewtonWorld = NewtonCreate(NULL, NULL);
+		mpNewtonWorld = NewtonCreate();
 
 		if(mpNewtonWorld==NULL){
 			Warning("Couldn't create newton world!\n");
@@ -143,7 +143,7 @@ namespace hpl {
 		mvWorldSizeMin = avMin;
 		mvWorldSizeMax = avMax;
 
-		NewtonSetWorldSize(mpNewtonWorld,avMin.v, avMax.v);
+		// Newton 3.x worlds are unbounded: the size is only kept for the engine's own queries.
 	}
 
 	cVector3f cPhysicsWorldNewton::GetWorldSizeMin()
@@ -179,17 +179,16 @@ namespace hpl {
 		
 		switch(mAccuracy)
 		{
+		// Newton 2.x had exact/adaptive solver and friction models; Newton 3.x only has an
+		// iteration count (and no separate friction model).
 		case ePhysicsAccuracy_Low:
-									NewtonSetSolverModel(mpNewtonWorld,1);
-									NewtonSetFrictionModel(mpNewtonWorld,1);
+									NewtonSetSolverIterations(mpNewtonWorld,2);
 									break;
 		case ePhysicsAccuracy_Medium:
-									NewtonSetSolverModel(mpNewtonWorld,2);
-									NewtonSetFrictionModel(mpNewtonWorld,1);
+									NewtonSetSolverIterations(mpNewtonWorld,4);
 									break;
 		case ePhysicsAccuracy_High:
-									NewtonSetSolverModel(mpNewtonWorld,0);
-									NewtonSetFrictionModel(mpNewtonWorld,0);
+									NewtonSetSolverIterations(mpNewtonWorld,8);
 									break;
 		}
 	}
@@ -387,10 +386,11 @@ namespace hpl {
 	//-----------------------------------------------------------------------
 
 	static std::vector<iPhysicsBody*> *gpBodyVec;
-	static void AddNewtonBodyToVector(const NewtonBody* apNewtonBody)//, void* userData)
+	static int AddNewtonBodyToVector(const NewtonBody* apNewtonBody, void* apUserData)
 	{
 		cPhysicsBodyNewton* pBody = (cPhysicsBodyNewton*) NewtonBodyGetUserData(apNewtonBody);
 		gpBodyVec->push_back(pBody);
+		return 1;
 	}
 
 	void cPhysicsWorldNewton::GetBodiesInBV(cBoundingVolume *apBV, std::vector<iPhysicsBody*> *apBodyVec)
@@ -398,7 +398,7 @@ namespace hpl {
 		gpBodyVec = apBodyVec;
 
 		//NewtonWorldForEachBodyInAABBDo(mpNewtonWorld,apBV->GetMin().v, apBV->GetMax().v,AddNewtonBodyToVector, NULL);
-		NewtonWorldForEachBodyInAABBDo(mpNewtonWorld,apBV->GetMin().v, apBV->GetMax().v,AddNewtonBodyToVector);
+		NewtonWorldForEachBodyInAABBDo(mpNewtonWorld,apBV->GetMin().v, apBV->GetMax().v,AddNewtonBodyToVector, NULL);
 	}
 	
 	//-----------------------------------------------------------------------
@@ -484,8 +484,9 @@ namespace hpl {
 		else return 0;
 	}
 
-	static float RayCastFilterFunc (const NewtonBody* apNewtonBody, const float* apNormalVec, 
-								int alCollisionID, void* apUserData, float afIntersetParam)
+	static dFloat RayCastFilterFunc (const NewtonBody* apNewtonBody, const NewtonCollision* apShapeHit,
+								const dFloat* apHitContact, const dFloat* apNormalVec,
+								dLong alCollisionID, void* apUserData, dFloat afIntersetParam)
 	{
 		cPhysicsBodyNewton* pRigidBody = (cPhysicsBodyNewton*) NewtonBodyGetUserData(apNewtonBody);
 		if(pRigidBody->IsActive()==false) return 1;
@@ -546,12 +547,16 @@ namespace hpl {
 
 		
 		if(abUsePrefilter)
-			NewtonWorldRayCast(mpNewtonWorld, avOrigin.v, avEnd.v,RayCastFilterFunc, NULL, RayCastPrefilterFunc);
+			NewtonWorldRayCast(mpNewtonWorld, avOrigin.v, avEnd.v,RayCastFilterFunc, NULL, RayCastPrefilterFunc, 0);
 		else
-			NewtonWorldRayCast(mpNewtonWorld, avOrigin.v, avEnd.v,RayCastFilterFunc, NULL, NULL);
+			NewtonWorldRayCast(mpNewtonWorld, avOrigin.v, avEnd.v,RayCastFilterFunc, NULL, NULL, 0);
 	}
 	
 	//-----------------------------------------------------------------------
+
+	// Newton 3.x also reports per-contact shape attributes; same capacity as mpTempDepths.
+	static dLong gvCollideAttribA[500];
+	static dLong gvCollideAttribB[500];
 
 	static inline void CorrectNormalDirection(cVector3f& avNormal, const cVector3f& avCollidePoint, const cVector3f& avShapeACenter)
 	{
@@ -599,7 +604,7 @@ namespace hpl {
 					int lNum = NewtonCollisionCollide(mpNewtonWorld, alMaxPoints,
 												pSubShapeA->GetNewtonCollision(), &(mtxTransposeA.m[0][0]),
 												pSubShapeB->GetNewtonCollision(), &(mtxTransposeB.m[0][0]),
-												mpTempPoints, mpTempNormals, mpTempDepths, 0);
+												mpTempPoints, mpTempNormals, mpTempDepths, gvCollideAttribA, gvCollideAttribB, 0);
 					if(lNum<1) continue;
 					if(lNum > alMaxPoints )lNum = alMaxPoints;
 
@@ -649,7 +654,7 @@ namespace hpl {
 			int lNum = NewtonCollisionCollide(mpNewtonWorld, alMaxPoints,
 										pNewtonShapeA->GetNewtonCollision(), &(mtxTransposeA.m[0][0]),
 										pNewtonShapeB->GetNewtonCollision(), &(mtxTransposeB.m[0][0]),
-										mpTempPoints, mpTempNormals, mpTempDepths, 0);
+										mpTempPoints, mpTempNormals, mpTempDepths, gvCollideAttribA, gvCollideAttribB, 0);
 			
 			if(lNum<1) return false;
 			if(lNum > alMaxPoints )lNum = alMaxPoints;

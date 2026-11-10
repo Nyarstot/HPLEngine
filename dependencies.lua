@@ -15,6 +15,20 @@ LibraryMap["OALWrapper"] = {
     ["Include"] = DependencyDir .. "/OALWrapper/include"
 }
 
+LibraryMap["AngelScript"] = {
+    -- Built from source (HPL2/dependencies/angelscript). Must come before Common.Include,
+    -- which still carries the old 2.19 angelscript.h.
+    ["Include"] = DependencyDir .. "/angelscript/include/angelscript",
+    ["AddOnInclude"] = DependencyDir .. "/angelscript/add_on"
+}
+
+LibraryMap["Newton"] = {
+    -- Built from source (HPL2/dependencies/Newton, 3.14). Must come before Common.Include,
+    -- which still carries the old 2.00 Newton.h.
+    ["Include"] = DependencyDir .. "/Newton/sdk/dgNewton",
+    ["Defines"] = { "_NEWTON_STATIC_LIB" }
+}
+
 LibraryMap["SDL2"] = {
     ["Include"] = DependencyDir .. "/include/SDL2",
     ["Libs"]    = { "SDL2.lib" }
@@ -27,8 +41,6 @@ LibraryMap["Audio"] = {
 LibraryMap["Engine"] = {
     ["Libs"] =
     {
-        "newton.lib",
-        "angelscript.lib",
         "DevIL.lib",
         "glew32.lib",
         "libtheora.lib",

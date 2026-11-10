@@ -180,7 +180,8 @@ namespace hpl {
 
 	int cSqScript::GetFuncHandle(const tString& asFunc)
 	{
-		return mpModule->GetFunctionIdByName(asFunc.c_str());
+		asIScriptFunction *pFunc = mpModule->GetFunctionByName(asFunc.c_str());
+		return pFunc ? pFunc->GetId() : asNO_FUNCTION;
 	}
 
 	//-----------------------------------------------------------------------
@@ -203,7 +204,7 @@ namespace hpl {
 
 	bool cSqScript::Run(int alHandle)
 	{
-		mpContext->Prepare(alHandle);
+		mpContext->Prepare(mpScriptEngine->GetFunctionById(alHandle));
 
 		/* Set all the args here */
 

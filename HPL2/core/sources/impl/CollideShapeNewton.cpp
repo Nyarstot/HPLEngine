@@ -23,6 +23,7 @@
 #include "system/LowLevelSystem.h"
 #include "system/Platform.h"
 #include "resources/BinaryBuffer.h"
+#include "math/Math.h"
 
 namespace hpl {
 
@@ -68,16 +69,16 @@ namespace hpl {
 												0, pMtx); break;
 		
 		case eCollideShapeType_Sphere:		mpNewtonCollision = NewtonCreateSphere(apNewtonWorld,
-												//mvSize.x, mvSize.y, mvSize.z, if not all values are equal then this does not work
-												mvSize.x, mvSize.x,mvSize.x,	//so this is better!
+												mvSize.x,
 												0, pMtx); break;
 
 		case eCollideShapeType_Cylinder:	mpNewtonCollision = NewtonCreateCylinder(apNewtonWorld,
-												mvSize.x, mvSize.y, 
+												mvSize.x, mvSize.x, mvSize.y, 
 												0, pMtx); break;
 		
+		// Newton 2.x took the full capsule length, Newton 3.x takes the length of the cylinder part only.
 		case eCollideShapeType_Capsule:		mpNewtonCollision = NewtonCreateCapsule(apNewtonWorld,
-												mvSize.x, mvSize.y, 
+												mvSize.x, mvSize.x, cMath::Max(mvSize.y - mvSize.x*2.0f, 0.001f), 
 												0, pMtx); break;
 		}
 		
@@ -127,7 +128,7 @@ namespace hpl {
 	{
 		//Release Newton Collision
 		if(mpNewtonCollision)
-			NewtonReleaseCollision(mpNewtonWorld,mpNewtonCollision);
+			NewtonDestroyCollision(mpNewtonCollision);
 		
 		//Release all subshapes (for compound objects)
 		for(int i=0; i < (int)mvSubShapes.size(); i++)
@@ -226,13 +227,14 @@ namespace hpl {
 
 		mvSubShapes.reserve(avShapes.size());
         
+		NewtonSceneCollisionBeginAddRemove(mpNewtonCollision);
 		for(size_t i=0; i<avShapes.size(); ++i)
 		{
 			mvSubShapes.push_back(avShapes[i]);
 
 			cCollideShapeNewton *pNewtonShape = static_cast<cCollideShapeNewton*>(avShapes[i]);
 
-			NewtonSceneProxy* pProxy = NewtonSceneCollisionCreateProxy(mpNewtonCollision, pNewtonShape->GetNewtonCollision());
+			NewtonSceneCollisionAddSubCollision(mpNewtonCollision, pNewtonShape->GetNewtonCollision());
 			//cMatrixf mtxTransform = cMatrixf::Identity;
 			//NewtonSceneProxySetMatrix(pProxy, &mtxTransform.GetTranspose().m[0][0]);
 			if(apMatrices)
@@ -242,7 +244,7 @@ namespace hpl {
 			
 		}
 		
-		NewtonSceneCollisionOptimize(mpNewtonCollision);
+		NewtonSceneCollisionEndAddRemove(mpNewtonCollision);
 	}
 
 
@@ -268,8 +270,11 @@ namespace hpl {
 			mfVolume += pNewtonShape->GetVolume();
 		}
 
-		mpNewtonCollision = NewtonCreateCompoundCollision(mpNewtonWorld, (int)vNewtonColliders.size(),
-															&vNewtonColliders[0], 0);
+		mpNewtonCollision = NewtonCreateCompoundCollision(mpNewtonWorld, 0);
+		NewtonCompoundCollisionBeginAddRemove(mpNewtonCollision);
+		for(size_t i=0; i< vNewtonColliders.size(); i++)
+			NewtonCompoundCollisionAddSubCollision(mpNewtonCollision, vNewtonColliders[i]);
+		NewtonCompoundCollisionEndAddRemove(mpNewtonCollision);
 
 		// Create bounding volume
 		cVector3f vFinalMax = avShapes[0]->GetBoundingVolume().GetMax();
@@ -375,7 +380,9 @@ namespace hpl {
             NewtonTreeCollisionAddFace(mpNewtonCollision,3,vTriVec,sizeof(float)*3,1);
 		}
 
-		NewtonTreeCollisionEndBuild(mpNewtonCollision,0);//bOptimize ? 1: 0);
+		// Newton 3.x: let the tree merge coplanar triangles into polygons. Fewer faces under a body
+		// means fewer contacts per step (the 2.00 build had this turned off).
+		NewtonTreeCollisionEndBuild(mpNewtonCollision,1);
 
 		//Log(" %dms\n", cPlatform::GetApplicationTime()-lStartTime);
 

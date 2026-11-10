@@ -523,18 +523,41 @@ static void StringCharAt_Generic(asIScriptGeneric *gen)
 //-----------------------
 
 // This is the string factory that creates new strings for the script based on string literals
-static CScriptString *StringFactory(asUINT length, const char *s)
+// AngelScript 2.32+ creates string literals through an asIStringFactory object.
+// Every constant is its own CScriptString; the engine releases each one it requested.
+class cScriptStringFactory : public asIStringFactory
 {
-	return new CScriptString(s, length);
-}
+public:
+	const void *GetStringConstant(const char *data, asUINT length) override
+	{
+		return new CScriptString(data, length);
+	}
 
-static void StringFactory_Generic(asIScriptGeneric *gen)
-{
-	asUINT length = gen->GetArgDWord(0);
-	const char *s = (const char*)gen->GetArgAddress(1);
-	CScriptString *str = StringFactory(length, s);
-	gen->SetReturnAddress(str);
-}
+	int ReleaseStringConstant(const void *str) override
+	{
+		if( str == 0 )
+			return asERROR;
+
+		static_cast<const CScriptString*>(str)->Release();
+		return asSUCCESS;
+	}
+
+	int GetRawStringData(const void *str, char *data, asUINT *length) const override
+	{
+		if( str == 0 )
+			return asERROR;
+
+		const std::string &buffer = static_cast<const CScriptString*>(str)->buffer;
+		if( length )
+			*length = (asUINT)buffer.length();
+		if( data )
+			memcpy(data, buffer.c_str(), buffer.length());
+
+		return asSUCCESS;
+	}
+};
+
+static cScriptStringFactory gStringFactory;
 
 // This is the default string factory, that is responsible for creating empty string objects, e.g. when a variable is declared
 static CScriptString *StringDefaultFactory()
@@ -657,7 +680,7 @@ void RegisterScriptString_Native(asIScriptEngine *engine)
 	// Register the factory to return a handle to a new string
 	// Note: We must register the string factory after the basic behaviours,
 	// otherwise the library will not allow the use of object handles for this type
-	r = engine->RegisterStringFactory("string@", asFUNCTION(StringFactory), asCALL_CDECL); assert( r >= 0 );
+	r = engine->RegisterStringFactory("string", &gStringFactory); assert( r >= 0 );
 
 	// Need to use a wrapper for operator== otherwise gcc 4.7+ fails to compile
 	r = engine->RegisterObjectMethod("string", "bool opEquals(const string &in) const", asFUNCTIONPR(StringEquals, (const string &, const string &), bool), asCALL_CDECL_OBJFIRST); assert( r >= 0 );
@@ -732,7 +755,7 @@ void RegisterScriptString_Generic(asIScriptEngine *engine)
 	// Register the factory to return a handle to a new string
 	// Note: We must register the string factory after the basic behaviours,
 	// otherwise the library will not allow the use of object handles for this type
-	r = engine->RegisterStringFactory("string@", asFUNCTION(StringFactory_Generic), asCALL_GENERIC); assert( r >= 0 );
+	r = engine->RegisterStringFactory("string", &gStringFactory); assert( r >= 0 );
 
 	r = engine->RegisterObjectMethod("string", "bool opEquals(const string &in) const", asFUNCTION(StringEquals_Generic), asCALL_GENERIC); assert( r >= 0 );
 	r = engine->RegisterObjectMethod("string", "int opCmp(const string &in) const", asFUNCTION(StringCmp_Generic), asCALL_GENERIC); assert( r >= 0 );

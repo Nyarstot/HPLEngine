@@ -109,6 +109,7 @@ namespace hpl {
 
 		//Properties
 		bool mbGravity;
+		bool mbContinuousCollision;
 		
 		float mfMaxLinearSpeed;
 		float mfMaxAngularSpeed;

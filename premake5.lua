@@ -3,10 +3,17 @@ include "options.lua"
 
 
 workspace "HPLEngine"
-    -- Stage 1: the prebuilt dependencies in HPL2/dependencies/lib/win32 are 32-bit only.
-    architecture "x86"
     configurations {"Debug", "Release"}
+    platforms {"x86", "x64"}
     startproject "Amnesia"
+
+    -- x86 links against the prebuilt 32-bit libraries in HPL2/dependencies/lib/win32.
+    -- x64 is in progress: everything except the game executable builds so far.
+    filter "platforms:x86"
+        architecture "x86"
+    filter "platforms:x64"
+        architecture "x86_64"
+    filter {}
 
     buildpattern = "%{cfg.buildcfg}.%{cfg.system}.%{cfg.architecture}"
 
@@ -34,6 +41,8 @@ workspace "HPLEngine"
 
     group "Dependencies"
         include "HPL2/dependencies/OALWrapper"
+        include "HPL2/dependencies/angelscript"
+        include "HPL2/dependencies/Newton"
 
     group "Engine"
         include "HPL2/core"

@@ -530,7 +530,9 @@ namespace hpl {
 
 			if(fSpeed >= pEffect->mfMinSpeed && mbHasCollided==false && pEffect->msSound != "")
 			{
-				float fVolume = (fSpeed - pEffect->mfMinSpeed) / (pEffect->mfMaxSpeed - pEffect->mfMinSpeed);
+				// Min and max speed can be equal in the data: avoid 0/0 (NaN volume).
+				float fSpeedRange = pEffect->mfMaxSpeed - pEffect->mfMinSpeed;
+				float fVolume = fSpeedRange > 0 ? (fSpeed - pEffect->mfMinSpeed) / fSpeedRange : 1.0f;
                 
 				cSoundEntity *pSound = pWorld->CreateSoundEntity("LimitSound", pEffect->msSound,true);
 				if(pSound)

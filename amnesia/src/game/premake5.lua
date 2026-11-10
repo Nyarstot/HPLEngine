@@ -26,6 +26,7 @@ project "Amnesia"
     {
         "./",
         "%{wks.location}/HPL2/core/include",
+        "%{LibraryMap.AngelScript.Include}",
         "%{LibraryMap.Common.Include}"
     }
 
@@ -37,7 +38,9 @@ project "Amnesia"
     links
     {
         "HPL2",
-        "OALWrapper"
+        "OALWrapper",
+        "AngelScript",
+        "Newton"
     }
 
     links(LibraryMap.SDL2.Libs)

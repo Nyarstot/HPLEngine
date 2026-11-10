@@ -28,6 +28,8 @@
 
 using namespace std;
 
+class CScriptString;
+
 class cLuxScriptHandler : public iLuxUpdateable
 {
 public:	
@@ -73,6 +75,14 @@ private:
 
 	static bool __stdcall StringContains(string& asString, string& asSubString);
 	static string& __stdcall StringSub(string& asString, int alStart, int alCount);
+
+	// AngelScript 2.32+ holds on to objects returned by reference (AddRef/Release), and a plain
+	// std::string& is not a script string object. These are registered instead and return a new
+	// script string handle holding a copy.
+	static CScriptString* __stdcall StringSub_Handle(string& asString, int alStart, int alCount);
+	static CScriptString* __stdcall GetLocalVarString_Handle(string& asName);
+	static CScriptString* __stdcall GetGlobalVarString_Handle(string& asName);
+	static CScriptString* __stdcall GetEnemyStateName_Handle(string& asName);
 
 	//Function syntax: Func(string &in asTimer)
 	static void __stdcall AddTimer(string& asName, float afTime, string& asFunction);

@@ -21,7 +21,6 @@
 //Use this to check for memory leaks!
 
 #ifdef WIN32
-#pragma comment(lib, "angelscript.lib")
 #define UNICODE
 #include <windows.h>
 #include <shlobj.h>
@@ -48,6 +47,7 @@
 #endif
 
 #include "impl/scriptstring.h"
+#include "scriptarray/scriptarray.h"
 
 #include "system/String.h"
 
@@ -411,6 +411,8 @@ namespace hpl {
 		mpScriptOutput = hplNew( cScriptOutput, () );
 		mpScriptEngine->SetMessageCallback(asMETHOD(cScriptOutput,AddMessage), mpScriptOutput, asCALL_THISCALL);
 
+		// AngelScript 2.19 had built-in arrays (int[] a = {...}); since 2.20 they come from the add-on.
+		RegisterScriptArray(mpScriptEngine, true);
 		RegisterScriptString(mpScriptEngine);
 	
 		mlHandleCount = 0;

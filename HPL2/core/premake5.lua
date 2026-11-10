@@ -42,14 +42,21 @@ project "HPL2"
     {
         "./include",
         "%{LibraryMap.OALWrapper.Include}",
+        "%{LibraryMap.AngelScript.Include}",
+        "%{LibraryMap.AngelScript.AddOnInclude}",
+        "%{LibraryMap.Newton.Include}",
         "%{LibraryMap.Common.Include}",
         "%{LibraryMap.Common.Include}/AL"
     }
 
     links
     {
-        "OALWrapper"
+        "OALWrapper",
+        "AngelScript",
+        "Newton"
     }
+
+    defines(LibraryMap.Newton.Defines)
 
     -- Legacy code base: keep the noise down until it builds.
     warnings "Default"

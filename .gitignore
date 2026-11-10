@@ -356,6 +356,10 @@ HPL2/core/HPL2.vcxproj*
 HPL2/dependencies/OALWrapper/OALWrapper.vcxproj*
 amnesia/src/game/Amnesia.vcxproj*
 
-# Unpacked HPL2/dependencies.zip: only OALWrapper is built from source and tracked
+# Unpacked HPL2/dependencies.zip is not tracked; libraries built from source are
 HPL2/dependencies/*
 !HPL2/dependencies/OALWrapper/
+!HPL2/dependencies/angelscript/
+!HPL2/dependencies/Newton/
+HPL2/dependencies/angelscript/*.vcxproj*
+HPL2/dependencies/Newton/*.vcxproj*

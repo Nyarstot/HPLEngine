@@ -69,8 +69,7 @@ namespace hpl {
 	private:
 		float Combine(ePhysicsMaterialCombMode aMode, float afX, float afY);
 
-		static int OnAABBOverlapCallback(const NewtonMaterial* apMaterial,
-										const NewtonBody* apBody0, const NewtonBody* apBody1, int alThreadIndex);
+		static int OnAABBOverlapCallback(const NewtonJoint* apContactJoint, dFloat afTimestep, int alThreadIndex);
 
 		static void ContactsProcessCallback(const NewtonJoint* apContactJoint, dFloat afTimestep, int alThreadIndex);
 
